@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NetShield | Firewall Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<header class="header">
+
+    <div>
+        <h1>🛡 NetShield</h1>
+        <p>Personal Firewall & Network Traffic Monitor</p>
+    </div>
+
+    <span class="status" id="systemStatus">
+        ● Local Dashboard
+    </span>
+
+</header>
+
+
+<main class="container">
+
+    <!-- Statistics -->
+
+    <section class="stats">
+
+        <div class="card">
+            <h3>Total Events</h3>
+            <p id="total">{{ stats.total }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Observed Packets</h3>
+            <p id="observed">{{ stats.observed }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Firewall Rule Events</h3>
+            <p id="blocked">{{ stats.blocked }}</p>
+        </div>
+
+    </section>
+
+
+    <!-- Packet Monitoring -->
+
+    <section class="panel">
+
+        <h2>Packet Monitoring</h2>
+
+        <p>
+            Start or stop Scapy packet capture.
+            Run this application as Administrator for packet capture
+            and firewall management.
+        </p>
+
+        <div class="control-form">
+
+            <button id="startMonitor" type="button">
+                Start Monitoring
+            </button>
+
+            <button id="stopMonitor"
+                    type="button"
+                    class="remove-btn">
+                Stop Monitoring
+            </button>
+
+            <span id="monitorState" class="state-label">
+                Checking status...
+            </span>
+
+        </div>
+
+        <p id="monitorMessage" class="message" role="status"></p>
+
+    </section>
+
+
+    <!-- Firewall Control Panel -->
+
+    <section class="panel">
+
+        <h2>Firewall Control Panel</h2>
+
+        <p>
+            Create or remove an outbound block rule
+            in Windows Defender Firewall.
+        </p>
+
+        <div class="control-form">
+
+            <input
+                type="text"
+                id="ipAddress"
+                placeholder="Enter IPv4 or IPv6 address"
+                autocomplete="off"
+            >
+
+            <button id="blockButton" type="button">
+                Block IP
+            </button>
+
+            <button id="removeButton"
+                    type="button"
+                    class="remove-btn">
+                Remove Rule
+            </button>
+
+        </div>
+
+        <p id="message" class="message" role="status"></p>
+
+    </section>
+
+
+    <!-- Firewall Rules -->
+
+    <section class="panel">
+
+        <h2>Active NetShield Firewall Rules</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Rule Name</th>
+                        <th>Enabled</th>
+                        <th>Direction</th>
+                        <th>Action</th>
+                        <th>Profile</th>
+                    </tr>
+                </thead>
+
+                <tbody id="rules">
+                    <tr>
+                        <td colspan="5">Loading rules...</td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- Protocol Chart -->
+
+    <section class="panel">
+
+        <h2>Protocol Distribution</h2>
+
+        <p>
+            Observed packets grouped by protocol.
+            This chart shows captured traffic, not firewall verdicts.
+        </p>
+
+        <div class="chart-container">
+            <canvas id="protocolChart"></canvas>
+        </div>
+
+    </section>
+
+
+    <!-- Network Logs -->
+
+    <section class="panel">
+
+        <div class="section-heading">
+
+            <div>
+                <h2>Network Traffic Logs</h2>
+
+                <p>
+                    Showing the latest 100 records returned
+                    by the dashboard API.
+                </p>
+            </div>
+
+            <a class="export-btn" href="/api/export">
+                Download CSV
+            </a>
+
+        </div>
+
+
+        <!-- Search and Filters -->
+
+        <div class="log-filters">
+
+            <input
+                type="search"
+                id="logSearch"
+                placeholder="Search source or destination IP..."
+            >
+
+            <select id="protocolFilter">
+
+                <option value="">All Protocols</option>
+                <option value="TCP">TCP</option>
+                <option value="UDP">UDP</option>
+                <option value="ICMP">ICMP</option>
+                <option value="ICMPv6">ICMPv6</option>
+                <option value="OTHER">Other</option>
+                <option value="FIREWALL">FIREWALL</option>
+
+            </select>
+
+
+            <select id="actionFilter">
+
+                <option value="">All Actions</option>
+                <option value="OBSERVED">OBSERVED</option>
+                <option value="BLOCKED">BLOCKED</option>
+
+            </select>
+
+
+            <button
+                type="button"
+                class="secondary-btn"
+                id="resetFilters"
+            >
+                Reset Filters
+            </button>
+
+        </div>
+
+
+        <p id="filterSummary" class="filter-summary">
+            Loading logs...
+        </p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Source IP</th>
+                        <th>Destination IP</th>
+                        <th>Protocol</th>
+                        <th>Source Port</th>
+                        <th>Destination Port</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+
+                <tbody id="logs">
+
+                    {% for log in logs %}
+
+                    <tr>
+                        <td>{{ log.timestamp }}</td>
+                        <td>{{ log.source_ip }}</td>
+                        <td>{{ log.destination_ip }}</td>
+                        <td>{{ log.protocol }}</td>
+                        <td>{{ log.source_port }}</td>
+                        <td>{{ log.destination_port }}</td>
+                        <td>{{ log.action }}</td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="7">
+                            No network events recorded yet.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script>
+
+"use strict";
+
+
+// Escape HTML values before displaying them.
+
+function escapeHTML(value) {
+
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+
+}
+
+
+let allLogs = [];
+let protocolChart = null;
+
+
+// Common API request function.
+
+async function apiRequest(url, options = {}) {
+
+    const response = await fetch(url, {
+
+        ...options,
+
+        headers: {
+
+            ...(options.headers || {}),
+
+            ...(options.method && options.method !== "GET"
+                ? {"Content-Type": "application/json"}
+                : {})
+
+        }
+
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.message ||
+            data.error ||
+            `Request failed (${response.status})`
+        );
+
+    }
+
+    return data;
+
+}
+
+
+// Display messages.
+
+function showMessage(id, text, isError = false) {
+
+    const element = document.getElementById(id);
+
+    element.textContent = text;
+
+    element.className = isError
+        ? "message error"
+        : "message success";
+
+}
+
+
+// Firewall management.
+
+async function manageFirewall(endpoint) {
+
+    const ip = document.getElementById("ipAddress").value.trim();
+
+    if (!ip) {
+
+        showMessage(
+            "message",
+            "Please enter an IP address.",
+            true
+        );
+
+        return;
+
+    }
+
+    try {
+
+        const result = await apiRequest(endpoint, {
+
+            method: "POST",
+
+            body: JSON.stringify({ip})
+
+        });
+
+        showMessage(
+            "message",
+            result.message || "Firewall operation completed."
+        );
+
+        document.getElementById("ipAddress").value = "";
+
+        await updateDashboard();
+
+    } catch (error) {
+
+        showMessage("message", error.message, true);
+
+    }
+
+}
+
+
+// Network log search and filtering.
+
+function renderNetworkLogs() {
+
+    const search = document
+        .getElementById("logSearch")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const protocol = document
+        .getElementById("protocolFilter")
+        .value;
+
+    const action = document
+        .getElementById("actionFilter")
+        .value;
+
+
+    const filtered = allLogs.filter(log => {
+
+        const src = String(log.source_ip || "").toLowerCase();
+
+        const dst = String(log.destination_ip || "").toLowerCase();
+
+        const proto = String(log.protocol || "").toUpperCase();
+
+        const act = String(log.action || "").toUpperCase();
+
+
+        return (
+
+            (!search || src.includes(search) || dst.includes(search))
+
+            &&
+
+            (!protocol || proto === protocol)
+
+            &&
+
+            (!action || act === action)
+
+        );
+
+    });
+
+
+    const body = document.getElementById("logs");
+
+
+    if (filtered.length === 0) {
+
+        body.innerHTML = `
+            <tr>
+                <td colspan="7">
+                    No matching network events found.
+                </td>
+            </tr>
+        `;
+
+    } else {
+
+        body.innerHTML = filtered.map(log => `
+
+            <tr>
+
+                <td>${escapeHTML(log.timestamp)}</td>
+
+                <td>${escapeHTML(log.source_ip)}</td>
+
+                <td>${escapeHTML(log.destination_ip)}</td>
+
+                <td>${escapeHTML(log.protocol)}</td>
+
+                <td>${escapeHTML(log.source_port)}</td>
+
+                <td>${escapeHTML(log.destination_port)}</td>
+
+                <td>${escapeHTML(log.action)}</td>
+
+            </tr>
+
+        `).join("");
+
+    }
+
+
+    document.getElementById("filterSummary").textContent =
+        `Showing ${filtered.length} of ${allLogs.length} loaded events.`;
+
+}
+
+
+// Reset filters.
+
+function resetFilters() {
+
+    document.getElementById("logSearch").value = "";
+
+    document.getElementById("protocolFilter").value = "";
+
+    document.getElementById("actionFilter").value = "";
+
+    renderNetworkLogs();
+
+}
+
+
+// Protocol chart.
+
+async function updateProtocolChart() {
+
+    try {
+
+        const data = await apiRequest("/api/protocols");
+
+        const labels = data.map(item => item.protocol);
+
+        const values = data.map(item => item.total);
+
+        const canvas = document.getElementById("protocolChart");
+
+        if (!canvas || typeof Chart === "undefined") {
+            return;
+        }
+
+        if (protocolChart) {
+
+            protocolChart.data.labels = labels;
+
+            protocolChart.data.datasets[0].data = values;
+
+            protocolChart.update();
+
+        } else {
+
+            protocolChart = new Chart(
+                canvas.getContext("2d"),
+                {
+
+                    type: "doughnut",
+
+                    data: {
+
+                        labels,
+
+                        datasets: [{
+
+                            label: "Observed Packets",
+
+                            data: values,
+
+                            backgroundColor: [
+                                "#37e6c2",
+                                "#3b82f6",
+                                "#f59e0b",
+                                "#ef4444",
+                                "#a78bfa",
+                                "#94a3b8"
+                            ],
+
+                            borderWidth: 2,
+
+                            borderColor: "#142238"
+
+                        }]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+
+                                position: "bottom",
+
+                                labels: {
+                                    color: "#e5e7eb"
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error("Protocol chart error:", error);
+
+    }
+
+}
+
+
+// Update dashboard information.
+
+async function updateDashboard() {
+
+    try {
+
+        const [stats, logs, rules] = await Promise.all([
+
+            apiRequest("/api/stats"),
+
+            apiRequest("/api/logs"),
+
+            apiRequest("/api/rules")
+
+        ]);
+
+
+        // Update statistics.
+
+        document.getElementById("total").textContent = stats.total;
+
+        document.getElementById("observed").textContent = stats.observed;
+
+        document.getElementById("blocked").textContent = stats.blocked;
+
+
+        // Update network logs.
+
+        allLogs = Array.isArray(logs) ? logs : [];
+
+        renderNetworkLogs();
+
+
+        // Update firewall rules.
+
+        const rulesBody = document.getElementById("rules");
+
+        rulesBody.innerHTML = Array.isArray(rules) && rules.length
+
+            ? rules.map(rule => `
+
+                <tr>
+
+                    <td>${escapeHTML(rule.DisplayName)}</td>
+
+                    <td>${escapeHTML(rule.Enabled)}</td>
+
+                    <td>${escapeHTML(rule.Direction)}</td>
+
+                    <td>${escapeHTML(rule.Action)}</td>
+
+                    <td>${escapeHTML(rule.Profile)}</td>
+
+                </tr>
+
+            `).join("")
+
+            : `
+                <tr>
+                    <td colspan="5">
+                        No NetShield rules found.
+                    </td>
+                </tr>
+            `;
+
+    } catch (error) {
+
+        console.error("Dashboard update failed:", error);
+
+    }
+
+}
+
+
+// Update packet monitoring status.
+
+async function updateMonitorStatus() {
+
+    try {
+
+        const status = await apiRequest("/api/monitor/status");
+
+        const label = document.getElementById("monitorState");
+
+        if (status.running) {
+
+            label.textContent = "● Monitoring is running";
+
+            label.className = "state-label running";
+
+        } else if (status.error) {
+
+            label.textContent = "● Monitor error: " + status.error;
+
+            label.className = "state-label stopped";
+
+        } else {
+
+            label.textContent = "● Monitoring is stopped";
+
+            label.className = "state-label stopped";
+
+        }
+
+    } catch (error) {
+
+        document.getElementById("monitorState").textContent =
+            "Status unavailable";
+
+    }
+
+}
+
+
+// Start or stop packet monitoring.
+
+async function controlMonitor(action) {
+
+    try {
+
+        const result = await apiRequest(
+            `/api/monitor/${action}`,
+            {
+                method: "POST",
+                body: JSON.stringify({})
+            }
+        );
+
+        showMessage(
+            "monitorMessage",
+            result.message,
+            false
+        );
+
+    } catch (error) {
+
+        showMessage(
+            "monitorMessage",
+            error.message,
+            true
+        );
+
+    }
+
+    await updateMonitorStatus();
+
+    await updateDashboard();
+
+}
+
+
+// Connect buttons and filters.
+
+document.getElementById("blockButton")
+    .addEventListener("click", () => {
+        manageFirewall("/api/block");
+    });
+
+document.getElementById("removeButton")
+    .addEventListener("click", () => {
+        manageFirewall("/api/remove");
+    });
+
+document.getElementById("logSearch")
+    .addEventListener("input", renderNetworkLogs);
+
+document.getElementById("protocolFilter")
+    .addEventListener("change", renderNetworkLogs);
+
+document.getElementById("actionFilter")
+    .addEventListener("change", renderNetworkLogs);
+
+document.getElementById("resetFilters")
+    .addEventListener("click", resetFilters);
+
+document.getElementById("startMonitor")
+    .addEventListener("click", () => {
+        controlMonitor("start");
+    });
+
+document.getElementById("stopMonitor")
+    .addEventListener("click", () => {
+        controlMonitor("stop");
+    });
+
+
+// Start automatic updates.
+
+updateDashboard();
+
+updateProtocolChart();
+
+updateMonitorStatus();
+
+setInterval(updateDashboard, 4000);
+
+setInterval(updateProtocolChart, 8000);
+
+setInterval(updateMonitorStatus, 3000);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+database/*.db
+database/*.db-shm
+database/*.db-wal
+screenshots/*
+!screenshots/.gitkeep

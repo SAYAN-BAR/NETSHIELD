@@ -1,0 +1,294 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Inter, Segoe UI, Arial, sans-serif;
+    background: #0b1424;
+    color: #e5e7eb;
+    line-height: 1.5;
+}
+
+/* Header */
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 5%;
+    background: #111f34;
+    border-bottom: 1px solid #263850;
+}
+
+.header h1 {
+    color: #37e6c2;
+    font-size: 28px;
+    margin-bottom: 3px;
+}
+
+.header p,
+.panel > p,
+.section-heading p {
+    color: #aab8ca;
+}
+
+.status {
+    color: #37e6c2;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Main container */
+
+.container {
+    width: min(1200px, 92%);
+    margin: 28px auto 50px;
+}
+
+/* Statistics */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.card,
+.panel {
+    background: #142238;
+    border: 1px solid #263850;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.card h3 {
+    color: #aab8ca;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.card p {
+    margin-top: 8px;
+    color: #37e6c2;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+/* Panels */
+
+.panel {
+    margin-bottom: 22px;
+}
+
+.panel h2 {
+    margin-bottom: 8px;
+    font-size: 20px;
+}
+
+.panel > p {
+    margin-bottom: 16px;
+}
+
+/* Inputs and controls */
+
+.control-form,
+.log-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+input,
+select {
+    min-width: 170px;
+    flex: 1;
+    padding: 11px 12px;
+    border: 1px solid #40536d;
+    border-radius: 7px;
+    background: #0d192b;
+    color: #e5e7eb;
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: #37e6c2;
+    box-shadow: 0 0 0 2px rgba(55, 230, 194, 0.12);
+}
+
+/* Buttons */
+
+button,
+.export-btn {
+    border: 0;
+    border-radius: 7px;
+    padding: 11px 16px;
+    background: #37e6c2;
+    color: #092019;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+button:hover,
+.export-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+
+.remove-btn,
+.secondary-btn {
+    background: #33465f;
+    color: #f3f6fa;
+}
+
+/* Messages */
+
+.message {
+    min-height: 22px;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.message.success {
+    color: #37e6c2;
+}
+
+.message.error {
+    color: #ff7777;
+}
+
+/* Monitoring status */
+
+.state-label {
+    color: #aab8ca;
+    font-size: 14px;
+}
+
+.state-label.running {
+    color: #37e6c2;
+}
+
+.state-label.stopped {
+    color: #f5b942;
+}
+
+/* Tables */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+}
+
+th,
+td {
+    padding: 12px 13px;
+    border-bottom: 1px solid #2b3d55;
+    text-align: left;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+th {
+    color: #37e6c2;
+    background: #192b43;
+    font-weight: 700;
+}
+
+td {
+    color: #d4dce7;
+}
+
+tbody tr:hover {
+    background: rgba(55, 230, 194, 0.045);
+}
+
+/* Protocol chart */
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 300px;
+    margin: 12px auto 0;
+}
+
+/* Log section */
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.section-heading p {
+    margin-bottom: 0;
+}
+
+.log-filters {
+    margin-top: 18px;
+}
+
+.log-filters input[type="search"] {
+    flex: 2 1 260px;
+}
+
+.log-filters select {
+    flex: 1 1 150px;
+}
+
+.filter-summary {
+    margin: 12px 0;
+    color: #9fb0c5;
+    font-size: 13px;
+}
+
+/* Responsive layout */
+
+@media (max-width: 700px) {
+
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .card,
+    .panel {
+        padding: 17px;
+    }
+
+    .control-form > input,
+    .control-form > button,
+    .log-filters > input,
+    .log-filters > select,
+    .log-filters > button {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+}

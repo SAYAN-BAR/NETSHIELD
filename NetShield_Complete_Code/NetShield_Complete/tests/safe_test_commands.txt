@@ -1,0 +1,8 @@
+Safe basic checks (run from project directory):
+python logger.py
+python firewall.py status
+python firewall.py block --ip 203.0.113.10
+python firewall.py status
+python firewall.py remove --ip 203.0.113.10
+
+Do not use real third-party IP addresses for testing.
